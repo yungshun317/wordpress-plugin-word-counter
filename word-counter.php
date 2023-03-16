@@ -25,8 +25,29 @@ if ( ! class_exists( 'Word_Counter' ) ) {
 
         function settings() {
             add_settings_section( 'word_counter_section', null, null, 'word_counter' );
+
             add_settings_field( 'word_counter_location', 'Display Location', array( $this, 'location_html' ), 'word_counter', 'word_counter_section' );
-            register_setting( 'word_counter_group', 'word-counter-location', array( 'sanitize_callback' => 'sanitize_text_field', 'default' => '0' ) );
+            register_setting( 'word_counter_group', 'word_counter_location', array( 'sanitize_callback' => array( $this, 'sanitize_location'), 'default' => '0' ) );
+
+            add_settings_field( 'word_counter_headline', 'Headline Text', array( $this, 'headline_html' ), 'word_counter', 'word_counter_section' );
+            register_setting( 'word_counter_group', 'word_counter_headline', array( 'sanitize_callback' => 'sanitize_text_field', 'default' => 'Post Statistics' ) );
+
+            add_settings_field( 'word_counter', 'Word Count', array( $this, 'checkbox_html' ), 'word_counter', 'word_counter_section', array( 'name' => 'character_count' ) );
+            register_setting( 'word_counter_group', 'word_counter', array( 'sanitize_callback' => 'sanitize_text_field', 'default' => '1' ) );
+
+            add_settings_field( 'word_counter_character_count', 'Character Count', array( $this, 'checkbox_html' ), 'word_counter', 'word_counter_section' );
+            register_setting( 'word_counter_group', 'word_counter_character_count', array( 'sanitize_callback' => 'sanitize_text_field', 'default' => '1' ) );
+
+            add_settings_field( 'word_counter_read_time', 'Read Time', array( $this, 'checkbox_html' ), 'word_counter', 'word_counter_section', array( 'name' => 'word_counter_read_time' ) );
+            register_setting( 'word_counter_group', 'word_counter_read_time', array( 'sanitize_callback' => 'sanitize_text_field', 'default' => '1' ) );
+        }
+
+        function sanitize_location( $input ) {
+            if ( $input != '0' AND $input != '1' ) {
+                add_settings_error( 'word_counter_location', 'word_counter_location_error', 'Display location must be either beginning or end.' );
+                return get_option( 'word_counter_location' );
+            }
+            return $input;
         }
 
         function location_html() {
