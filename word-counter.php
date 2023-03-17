@@ -25,19 +25,20 @@ if ( ! class_exists( 'Word_Counter' ) ) {
         }
 
         function admin_page() {
-            add_options_page( 'Word Counter Settings', 'Word Counter', 'manage_options', 'word_counter_settings_page', array( $this, 'settings_html' ) );
+            add_options_page( 'Word Counter Settings', 'Word Counter', 'manage_options', 'word_counter', array( $this, 'settings_html' ) );
         }
 
         function settings_html() {
             ?>
             <div class="wrap">
                 <h1>Word Counter Settings</h1>
-                <form action="options.php" method="POST"></form>
+                <form action="options.php" method="POST">
                 <?php
                 settings_fields('word_counter_group' );
-                do_settings_sections( 'word_counter_section' );
+                do_settings_sections( 'word_counter' );
                 submit_button();
                 ?>
+                </form>
             </div>
             <?php
         }
@@ -51,10 +52,10 @@ if ( ! class_exists( 'Word_Counter' ) ) {
             add_settings_field( 'word_counter_headline', 'Headline Text', array( $this, 'headline_html' ), 'word_counter', 'word_counter_section' );
             register_setting( 'word_counter_group', 'word_counter_headline', array( 'sanitize_callback' => 'sanitize_text_field', 'default' => 'Post Statistics' ) );
 
-            add_settings_field( 'word_counter', 'Word Count', array( $this, 'checkbox_html' ), 'word_counter', 'word_counter_section', array( 'name' => 'word_counter_character_count' ) );
+            add_settings_field( 'word_counter', 'Word Count', array( $this, 'checkbox_html' ), 'word_counter', 'word_counter_section', array( 'name' => 'word_counter' ) );
             register_setting( 'word_counter_group', 'word_counter', array( 'sanitize_callback' => 'sanitize_text_field', 'default' => '1' ) );
 
-            add_settings_field( 'word_counter_character_count', 'Character Count', array( $this, 'checkbox_html' ), 'word_counter', 'word_counter_section' );
+            add_settings_field( 'word_counter_character_count', 'Character Count', array( $this, 'checkbox_html' ), 'word_counter', 'word_counter_section', array( 'name' => 'word_counter_character_count' ) );
             register_setting( 'word_counter_group', 'word_counter_character_count', array( 'sanitize_callback' => 'sanitize_text_field', 'default' => '1' ) );
 
             add_settings_field( 'word_counter_read_time', 'Read Time', array( $this, 'checkbox_html' ), 'word_counter', 'word_counter_section', array( 'name' => 'word_counter_read_time' ) );
@@ -98,7 +99,7 @@ if ( ! class_exists( 'Word_Counter' ) ) {
 
         function headline_html() {
             ?>
-            <input type="text" name="word_counter_headline" value="<?php esc_attr( get_option( 'word_counter_headline' ) ) ?>"
+            <input type="text" name="word_counter_headline" value="<?php echo ! empty( get_option( 'word_counter_headline' ) ) ? esc_attr( get_option( 'word_counter_headline' ) ) : 'Post Statistics'; ?>">
             <?php
         }
 
@@ -122,11 +123,11 @@ if ( ! class_exists( 'Word_Counter' ) ) {
             $html = '<h3>' . esc_html( get_option( 'word_counter_headline', 'Post Statistics' ) ) . '</h3><p>';
 
             // Get word count once because both word count and read time will need it
-            if ( get_option( 'word_counter_word_count', '1' ) OR get_option( 'word_counter_read_time', '1' ) ) {
+            if ( get_option( 'word_counter', '1' ) OR get_option( 'word_counter_read_time', '1' ) ) {
                 $word_count = str_word_count( strip_tags( $content ) );
             }
 
-            if ( get_option( 'word_counter_word_count', '1' ) ) {
+            if ( get_option( 'word_counter', '1' ) ) {
                 $html .= 'This post has ' . $word_count . ' words.<br>';
             }
 
@@ -140,7 +141,7 @@ if ( ! class_exists( 'Word_Counter' ) ) {
 
             $html .= '</p>';
 
-            if ( get_option( 'word_counter_location', '0') == '0' ) {
+            if ( get_option( 'word_counter_location', '0' ) == '0' ) {
                 return $html . $content;
             }
             return $content . $html;
