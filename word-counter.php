@@ -21,6 +21,25 @@ if ( ! class_exists( 'Word_Counter' ) ) {
         function __construct() {
             add_action( 'admin_menu', array( $this, 'admin_page' ) );
             add_action( 'admin_init', array( $this, 'settings' ) );
+            add_filter( 'the_content', array( $this, 'if_wrap' ) );
+        }
+
+        function admin_page() {
+            add_options_page( 'Word Counter Settings', 'Word Counter', 'manage_options', 'word_counter_settings_page', array( $this, 'settings_html' ) );
+        }
+
+        function settings_html() {
+            ?>
+            <div class="wrap">
+                <h1>Word Counter Settings</h1>
+                <form action="options.php" method="POST"></form>
+                <?php
+                settings_fields('word_counter_group' );
+                do_settings_sections( 'word_counter_section' );
+                submit_button();
+                ?>
+            </div>
+            <?php
         }
 
         function settings() {
@@ -77,31 +96,54 @@ if ( ! class_exists( 'Word_Counter' ) ) {
             <?php
         }
 
+        function headline_html() {
+            ?>
+            <input type="text" name="word_counter_headline" value="<?php esc_attr( get_option( 'word_counter_headline' ) ) ?>"
+            <?php
+        }
+
         function location_html() {
             ?>
             <select name="word_counter_location">
-                <option value="0">Beginning of Post</option>
-                <option value="1">End of Post</option>
+                <option value="0" <?php selected( get_option( 'word_counter_location' ), '0' ) ?>>Beginning of Post</option>
+                <option value="1" <?php selected( get_option( 'word_counter_location' ), '1' ) ?>>End of Post</option>
             </select>
             <?php
         }
 
-        function admin_page() {
-            add_options_page( 'Word Counter Settings', 'Word Counter', 'manage_options', 'word_counter_settings_page', array( $this, 'settings_html' ) );
+        function if_wrap( $content ) {
+            if ( is_main_query() AND is_single() AND ( get_option( 'word_counter_word_count', '1' ) OR get_option( 'word_counter_character_count', '1' ) OR get_option( 'word_counter_read_time', '1' ) ) ) {
+                return $this->create_html( $content );
+            }
+            return $content;
         }
 
-        function settings_html() {
-            ?>
-            <div class="wrap">
-                <h1>Word Counter Settings</h1>
-                <form action="options.php" method="POST"></form>
-                <?php
-                    settings_fields('word_counter_group' );
-                    do_settings_sections( 'word_counter_section' );
-                    submit_button();
-                ?>
-            </div>
-            <?php
+        function create_html( $content ) {
+            $html = '<h3>' . esc_html( get_option( 'word_counter_headline', 'Post Statistics' ) ) . '</h3><p>';
+
+            // Get word count once because both word count and read time will need it
+            if ( get_option( 'word_counter_word_count', '1' ) OR get_option( 'word_counter_read_time', '1' ) ) {
+                $word_count = str_word_count( strip_tags( $content ) );
+            }
+
+            if ( get_option( 'word_counter_word_count', '1' ) ) {
+                $html .= 'This post has ' . $word_count . ' words.<br>';
+            }
+
+            if ( get_option( 'word_counter_character_count', '1' ) ) {
+                $html .= 'This post has ' . strlen(strip_tags( $content )) . ' characters.<br>';
+            }
+
+            if ( get_option( 'word_counter_read_time', '1' ) ) {
+                $html .= 'This post will take about ' . round( $word_count / 225 ) . ' minute(s) to read.<br>';
+            }
+
+            $html .= '</p>';
+
+            if ( get_option( 'word_counter_location', '0') == '0' ) {
+                return $html . $content;
+            }
+            return $content . $html;
         }
     }
 
