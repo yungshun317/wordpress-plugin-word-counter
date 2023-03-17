@@ -32,7 +32,7 @@ if ( ! class_exists( 'Word_Counter' ) ) {
             add_settings_field( 'word_counter_headline', 'Headline Text', array( $this, 'headline_html' ), 'word_counter', 'word_counter_section' );
             register_setting( 'word_counter_group', 'word_counter_headline', array( 'sanitize_callback' => 'sanitize_text_field', 'default' => 'Post Statistics' ) );
 
-            add_settings_field( 'word_counter', 'Word Count', array( $this, 'checkbox_html' ), 'word_counter', 'word_counter_section', array( 'name' => 'character_count' ) );
+            add_settings_field( 'word_counter', 'Word Count', array( $this, 'checkbox_html' ), 'word_counter', 'word_counter_section', array( 'name' => 'word_counter_character_count' ) );
             register_setting( 'word_counter_group', 'word_counter', array( 'sanitize_callback' => 'sanitize_text_field', 'default' => '1' ) );
 
             add_settings_field( 'word_counter_character_count', 'Character Count', array( $this, 'checkbox_html' ), 'word_counter', 'word_counter_section' );
@@ -48,6 +48,33 @@ if ( ! class_exists( 'Word_Counter' ) ) {
                 return get_option( 'word_counter_location' );
             }
             return $input;
+        }
+
+        /*
+        function word_count_html( $args ) {
+            ?>
+            <input type="checkbox" name="word_counter_word_count" value="1" <?php checked( get_option( "word_counter_word_count" ), '1' ) ?>>
+            <?php
+        }
+
+        function character_count_html( $args ) {
+            ?>
+            <input type="checkbox" name="word_counter_character_count" value="1" <?php checked( get_option( "word_counter_character_count" ), '1' ) ?>>
+            <?php
+        }
+
+        function read_time_html( $args ) {
+            ?>
+            <input type="checkbox" name="word_counter_read_time" value="1" <?php checked( get_option( "word_counter_read_time" ), '1' ) ?>>
+            <?php
+        }
+        */
+
+        // Reusable checkbox function
+        function checkbox_html( $args ) {
+            ?>
+            <input type="checkbox" name="<?php echo $args['name'] ?>" value="1" <?php checked( get_option( $args['name'] ), '1' ) ?>>
+            <?php
         }
 
         function location_html() {
